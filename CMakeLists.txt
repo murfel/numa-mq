@@ -6,5 +6,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Werror -pedantic -pth
 
 find_package(Boost COMPONENTS thread REQUIRED)
 
-add_executable(main main.cpp counter_interface.h multicounter.h numa-multicounter.h)
+add_executable(main main.cpp multicounter.h numa-multicounter.h)
 target_link_libraries(main PRIVATE Boost::thread)
