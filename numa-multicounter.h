@@ -9,8 +9,8 @@ private:
     static const int num_nodes = 4;
     std::array<multicounter *, num_nodes> multicounters{};
 
-    multicounter & node_multicounter() {
-        return *multicounters[numa_node_of_cpu(sched_getcpu())];
+    multicounter & node_multicounter(int node_id) {
+        return *multicounters[node_id];
     }
 public:
     explicit numa_multicounter(std::size_t num_counters_on_each_node) {
@@ -19,11 +19,11 @@ public:
             multicounters[i] = new(data) multicounter(num_counters_on_each_node, i);
         }
     }
-    void add() {
-        node_multicounter().add();
+    void add(int node_id) {
+        node_multicounter(node_id).add();
     }
-    uint64_t get() {
-        return num_nodes * node_multicounter().get();
+    uint64_t get(int node_id) {
+        return num_nodes * node_multicounter(node_id).get();
     }
 };
 
