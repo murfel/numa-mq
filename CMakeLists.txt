@@ -10,3 +10,6 @@ find_package(Boost COMPONENTS thread REQUIRED)
 
 add_executable(main main.cpp multicounter.h numa-multicounter.h)
 target_link_libraries(main PRIVATE Boost::thread)
+
+add_executable(pin_thread_example pin_thread_example.cpp)
+target_link_libraries(pin_thread_example PRIVATE Boost::thread)
