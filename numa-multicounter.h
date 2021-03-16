@@ -6,17 +6,17 @@
 
 class numa_multicounter {
 private:
-    static const int num_nodes = 4;
-    std::array<multicounter *, num_nodes> multicounters{};
+    const int num_nodes;
+    std::vector<multicounter *> multicounters;
 
     multicounter & node_multicounter(int node_id) {
         return *multicounters[node_id];
     }
 public:
-    explicit numa_multicounter(std::size_t num_counters_on_each_node) {
+    explicit numa_multicounter(int num_nodes, std::size_t num_counters_on_each_node) : num_nodes(num_nodes) {
         for (int i = 0; i < num_nodes; i++) {
             auto data = numa_alloc_onnode(sizeof(multicounter), i);
-            multicounters[i] = new(data) multicounter(num_counters_on_each_node, i);
+            multicounters.push_back(new(data) multicounter(num_counters_on_each_node, i));
         }
     }
     void add(int node_id) {
