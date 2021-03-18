@@ -5,7 +5,7 @@
 #include <boost/thread/barrier.hpp>
 
 #include "counters/two_choice_counter.h"
-#include "numa-multicounter.h"
+#include "numa_dummy_high_throughput_counter.h"
 
 /* Benchmarking utils */
 
@@ -100,7 +100,7 @@ uint64_t bench_simple_multicounter_ops_for_time(std::size_t num_threads, std::si
 }
 
 void numa_multicounter_thread_routine_ops_for_time(int node_id, int thread_id, boost::barrier & barrier,
-                                                   numa_multicounter & m, uint64_t & num_ops) {
+                                                   numa_dummy_high_throughput_counter & m, uint64_t & num_ops) {
     barrier.wait();
     num_ops = execute_for_time([node_id, thread_id, &m]() {
         m.add(node_id, thread_id);
@@ -111,7 +111,7 @@ uint64_t bench_numa_multicounter_ops_for_time(std::size_t num_threads, std::size
     std::vector<std::thread> threads;
     std::vector<uint64_t> num_ops_counters(num_threads);
     const int num_nodes = calc_num_nodes(num_threads);
-    numa_multicounter m(num_nodes, num_counters_on_each_node);
+    numa_dummy_high_throughput_counter m(num_nodes, num_counters_on_each_node);
     boost::barrier barrier(num_threads);
     for (std::size_t thread_id = 0; thread_id < num_threads; thread_id++) {
         threads.emplace_back(numa_multicounter_thread_routine_ops_for_time, thread_id / 18, thread_id,
@@ -126,7 +126,7 @@ uint64_t bench_numa_multicounter_ops_for_time(std::size_t num_threads, std::size
 }
 
 void numa_multicounter_thread_routine_time_for_ops(int node_id, int thread_id, boost::barrier & barrier,
-        numa_multicounter & m, uint64_t num_ops, uint64_t & time_ms, uint64_t & cnt_actual) {
+                                                   numa_dummy_high_throughput_counter & m, uint64_t num_ops, uint64_t & time_ms, uint64_t & cnt_actual) {
     barrier.wait();
     time_ms = execute_for_ops([node_id, thread_id, &m]() {
         m.add(node_id, thread_id);
@@ -139,7 +139,7 @@ multicounter_benchmark_results bench_numa_multicounter_time_for_ops(
         std::size_t num_threads, std::size_t num_counters_on_each_node, uint64_t num_ops = 1'000'000) {
     std::vector<std::thread> threads;
     const int num_nodes = calc_num_nodes(num_threads);
-    numa_multicounter m(num_nodes, num_counters_on_each_node);
+    numa_dummy_high_throughput_counter m(num_nodes, num_counters_on_each_node);
     boost::barrier barrier(num_threads);
     multicounter_benchmark_results bench_results(num_threads);
     std::fill(bench_results.num_ops.begin(), bench_results.num_ops.end(), num_ops);
