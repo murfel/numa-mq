@@ -15,23 +15,20 @@ struct alignas(128) aligned_counter {
 
 class dummy_high_accuracy_counter : abstract_counter {
 private:
-    aligned_counter * counters;
-    const std::size_t num_counters;
-    counter & get_counter(int thread_id) {
-        return counters[thread_id].value;
+    aligned_counter * my_counter;
+    counter & get_counter() {
+        return my_counter->value;
     }
 public:
-    dummy_high_accuracy_counter(std::size_t num_counters, int node_id) : num_counters(num_counters) {
-        counters = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter) * num_counters, node_id);
-        for (std::size_t i = 0; i < num_counters; i++) {
-            new(&counters[i]) aligned_counter;
-        }
+    dummy_high_accuracy_counter(std::size_t num_counters, int node_id) {
+        my_counter = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter), node_id);
+        new(my_counter) aligned_counter;
     }
     void add(int thread_id) {
-        get_counter(thread_id)++;
+        get_counter()++;
     }
     uint32_t get(int thread_id) {
-        return num_counters * get_counter(thread_id);
+        return get_counter();
     }
 };
 
