@@ -176,22 +176,25 @@ void bench_and_print_numa_multicounter_time_for_ops(
 int main() {
     const int T = 18;  // num threads on one node
 
+    std::cout << "simple multicounter 18 threads, 1-18 counters, mops" << std::endl;
     for (int num_counter = 1; num_counter <= 18; num_counter++) {
         uint64_t mops = bench_simple_multicounter_ops_for_time(T, num_counter);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
+    std::cout << "simple multicounter 18 threads, mult * 18 counters, mult=1..4, mops" << std::endl;
     for (int mult = 1; mult <= 4; mult++) {
         uint64_t mops = bench_simple_multicounter_ops_for_time(T, T * mult);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
+    std::cout << "numa multicounter mult * 18 threads, mult=1..4, 1 counter on each node, mops" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         uint64_t mops = bench_numa_multicounter_ops_for_time(num_threads, 1);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
-    std::cout << "1'000'000 increments by each thread" << std::endl;
+    std::cout << "numa multicounter, 1'000'000 increments by each thread" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         bench_and_print_numa_multicounter_time_for_ops(num_threads, 1);
         for (int mult = 1; mult <= 4; mult++) {
