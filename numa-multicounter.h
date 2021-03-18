@@ -1,5 +1,5 @@
 #include <numa.h>
-#include "multicounter.h"
+#include "counters/multicounter.h"
 
 #ifndef NUMA_MQ_NUMA_MULTICOUNTER_H
 #define NUMA_MQ_NUMA_MULTICOUNTER_H

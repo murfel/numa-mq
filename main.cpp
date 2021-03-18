@@ -4,7 +4,7 @@
 
 #include <boost/thread/barrier.hpp>
 
-#include "multicounter.h"
+#include "counters/multicounter.h"
 #include "numa-multicounter.h"
 
 /* Benchmarking utils */
