@@ -1,5 +1,5 @@
-#ifndef NUMA_MQ_MULTICOUNTER_H
-#define NUMA_MQ_MULTICOUNTER_H
+#ifndef NUMA_MQ_TWO_CHOICE_COUNTER_H
+#define NUMA_MQ_TWO_CHOICE_COUNTER_H
 
 
 #include <cstddef>
@@ -18,7 +18,7 @@ struct alignas(128) aligned_counter {
     counter value;
 };
 
-class multicounter {
+class two_choice_counter {
 private:
     aligned_counter * counters;
     const std::size_t num_counters;
@@ -26,7 +26,7 @@ private:
         return counters[random_fnv1a() % num_counters].value;
     }
 public:
-    multicounter(std::size_t num_counters, int node_id) : num_counters(num_counters) {
+    two_choice_counter(std::size_t num_counters, int node_id) : num_counters(num_counters) {
         counters = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter) * num_counters, node_id);
         for (std::size_t i = 0; i < num_counters; i++) {
             new(&counters[i]) aligned_counter;
@@ -44,4 +44,4 @@ public:
 };
 
 
-#endif //NUMA_MQ_MULTICOUNTER_H
+#endif //NUMA_MQ_TWO_CHOICE_COUNTER_H

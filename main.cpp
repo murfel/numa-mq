@@ -4,7 +4,7 @@
 
 #include <boost/thread/barrier.hpp>
 
-#include "counters/multicounter.h"
+#include "counters/two_choice_counter.h"
 #include "numa-multicounter.h"
 
 /* Benchmarking utils */
@@ -74,7 +74,7 @@ void pin_thread(std::size_t thread_id, std::thread & thread) {
 
 /* Benchmarking functions */
 
-void simple_multicounter_thread_routine_ops_for_time(int thread_id, boost::barrier & barrier, multicounter & m,
+void simple_multicounter_thread_routine_ops_for_time(int thread_id, boost::barrier & barrier, two_choice_counter & m,
                                                      uint64_t & num_ops) {
     barrier.wait();
     num_ops = execute_for_time([thread_id, &m]() {
@@ -85,7 +85,7 @@ void simple_multicounter_thread_routine_ops_for_time(int thread_id, boost::barri
 uint64_t bench_simple_multicounter_ops_for_time(std::size_t num_threads, std::size_t num_counters) {
     std::vector<std::thread> threads;
     std::vector<uint64_t> num_ops_counters(num_threads);
-    multicounter m(num_counters, 0);
+    two_choice_counter m(num_counters, 0);
     boost::barrier barrier(num_threads);
     for (std::size_t thread_id = 0; thread_id < num_threads; thread_id++) {
         threads.emplace_back(simple_multicounter_thread_routine_ops_for_time, thread_id, std::ref(barrier),
@@ -176,25 +176,25 @@ void bench_and_print_numa_multicounter_time_for_ops(
 int main() {
     const int T = 18;  // num threads on one node
 
-    std::cout << "simple multicounter 18 threads, 1-18 counters, mops" << std::endl;
+    std::cout << "simple two_choice_counter 18 threads, 1-18 counters, mops" << std::endl;
     for (int num_counter = 1; num_counter <= 18; num_counter++) {
         uint64_t mops = bench_simple_multicounter_ops_for_time(T, num_counter);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
-    std::cout << "simple multicounter 18 threads, mult * 18 counters, mult=1..4, mops" << std::endl;
+    std::cout << "simple two_choice_counter 18 threads, mult * 18 counters, mult=1..4, mops" << std::endl;
     for (int mult = 1; mult <= 4; mult++) {
         uint64_t mops = bench_simple_multicounter_ops_for_time(T, T * mult);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
-    std::cout << "numa multicounter mult * 18 threads, mult=1..4, 1 counter on each node, mops" << std::endl;
+    std::cout << "numa two_choice_counter mult * 18 threads, mult=1..4, 1 counter on each node, mops" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         uint64_t mops = bench_numa_multicounter_ops_for_time(num_threads, 1);
         std::cout << mops << " " << std::flush;
     } std::cout << std::endl;
 
-    std::cout << "numa multicounter, 1'000'000 increments by each thread" << std::endl;
+    std::cout << "numa two_choice_counter, 1'000'000 increments by each thread" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         bench_and_print_numa_multicounter_time_for_ops(num_threads, 1);
         for (int mult = 1; mult <= 4; mult++) {
