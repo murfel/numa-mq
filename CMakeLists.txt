@@ -8,7 +8,8 @@ set(BOOST_INCLUDEDIR "/nfs/scistore14/alistgrp/vaksenov/murfel/multiqueue/boost_
 
 find_package(Boost COMPONENTS thread REQUIRED)
 
-add_executable(main main.cpp abstract_counter.h multicounter.h numa-multicounter.h)
+add_executable(main main.cpp abstract_counter.h dummy_high_throughput_counter.h dummy_high_accuracy_counter.h
+        multicounter.h numa-multicounter.h)
 target_link_libraries(main PRIVATE Boost::thread)
 
 add_executable(pin_thread_example pin_thread_example.cpp)
