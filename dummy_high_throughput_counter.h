@@ -1,10 +1,8 @@
 #ifndef NUMA_MQ_DUMMY_HIGH_THROUGHPUT_COUNTER_H
 #define NUMA_MQ_DUMMY_HIGH_THROUGHPUT_COUNTER_H
 
-#include <cstddef>
-#include <stdint-gcc.h>
+#include <cstdint>
 #include <atomic>
-#include <vector>
 #include <new>
 #include <numa.h>
 

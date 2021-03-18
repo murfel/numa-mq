@@ -1,6 +1,12 @@
 #ifndef NUMA_MQ_DUMMY_HIGH_ACCURACY_COUNTER_H
 #define NUMA_MQ_DUMMY_HIGH_ACCURACY_COUNTER_H
 
+#include <cstdint>
+#include <atomic>
+#include <numa.h>
+#include <new>
+#include "abstract_counter.h"
+
 using counter = std::atomic<uint32_t>;
 
 struct alignas(128) aligned_counter {
