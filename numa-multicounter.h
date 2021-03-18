@@ -19,11 +19,11 @@ public:
             multicounters.push_back(new(data) multicounter(num_counters_on_each_node, i));
         }
     }
-    void add(int node_id) {
-        node_multicounter(node_id).add();
+    void add(int node_id, int thread_id) {
+        node_multicounter(node_id).add(thread_id);
     }
-    uint64_t get(int node_id) {
-        return num_nodes * node_multicounter(node_id).get();
+    uint64_t get(int node_id, int thread_id) {
+        return num_nodes * node_multicounter(node_id).get(thread_id);
     }
 };
 

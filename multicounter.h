@@ -10,6 +10,7 @@
 #include <numa.h>
 
 #include "fast_random.h"
+#include "abstract_counter.h"
 
 using counter = std::atomic<uint32_t>;
 
@@ -31,13 +32,13 @@ public:
             new(&counters[i]) aligned_counter;
         }
     }
-    void add() {
+    void add(int thread_id) {
         counter & c1 = random_counter();
         counter & c2 = random_counter();
         counter & c = c1 < c2 ? c1 : c2;
         c++;
     }
-    uint32_t get() {
+    uint32_t get(int thread_id) {
         return num_counters * random_counter();
     }
 };
