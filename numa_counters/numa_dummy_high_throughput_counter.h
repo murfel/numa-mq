@@ -1,5 +1,5 @@
 #include <numa.h>
-#include "counters/two_choice_counter.h"
+#include "../counters/two_choice_counter.h"
 
 #ifndef NUMA_MQ_NUMA_DUMMY_HIGH_THROUGHPUT_COUNTER_H
 #define NUMA_MQ_NUMA_DUMMY_HIGH_THROUGHPUT_COUNTER_H

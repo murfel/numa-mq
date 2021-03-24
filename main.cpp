@@ -5,7 +5,7 @@
 #include <boost/thread/barrier.hpp>
 
 #include "counters/two_choice_counter.h"
-#include "numa_dummy_high_throughput_counter.h"
+#include "numa_counters/numa_dummy_high_throughput_counter.h"
 #include "counters/dummy_high_accuracy_counter.h"
 #include "counters/dummy_high_throughput_counter.h"
 
