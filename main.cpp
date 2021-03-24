@@ -6,6 +6,8 @@
 
 #include "counters/two_choice_counter.h"
 #include "numa_dummy_high_throughput_counter.h"
+#include "counters/dummy_high_accuracy_counter.h"
+#include "counters/dummy_high_throughput_counter.h"
 
 /* Benchmarking utils */
 
@@ -181,6 +183,8 @@ void bench_and_print_numa_multicounter_time_for_ops(
 }
 
 using dummy_2choice_counter_t = numa_dummy_high_throughput_counter<two_choice_counter>;
+using dummy_hi_thru_counter_t = numa_dummy_high_throughput_counter<dummy_high_throughput_counter>;
+using dummy_hi_acc_counter_t = numa_dummy_high_throughput_counter<dummy_high_accuracy_counter>;
 
 int main() {
     const int T = 18;  // num threads on one node
