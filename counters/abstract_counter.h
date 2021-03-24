@@ -1,6 +1,13 @@
 #ifndef NUMA_MQ_ABSTRACT_COUNTER_H
 #define NUMA_MQ_ABSTRACT_COUNTER_H
 
+
+using counter = std::atomic<uint32_t>;
+
+struct alignas(128) aligned_counter {
+    counter value;
+};
+
 class abstract_counter {
 public:
     abstract_counter() = default;

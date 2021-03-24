@@ -9,24 +9,25 @@
 #include "../fast_random.h"
 #include "abstract_counter.h"
 
-using counter = std::atomic<uint32_t>;
-
-struct alignas(128) aligned_counter {
-    counter value;
-};
 
 class dummy_high_throughput_counter : abstract_counter {
 private:
-    aligned_counter * counters;
+    using non_atomic_counter = uint32_t;
+
+    struct alignas(128) aligned_non_atomic_counter {
+        non_atomic_counter value;
+    };
+
+    aligned_non_atomic_counter * counters;
     const std::size_t num_counters;
-    counter & get_counter(int thread_id) {
+    non_atomic_counter & get_counter(int thread_id) {
         return counters[thread_id].value;
     }
 public:
     dummy_high_throughput_counter(std::size_t num_counters, int node_id) : num_counters(num_counters) {
-        counters = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter) * num_counters, node_id);
+        counters = (aligned_non_atomic_counter *) numa_alloc_onnode(sizeof(aligned_non_atomic_counter) * num_counters, node_id);
         for (std::size_t i = 0; i < num_counters; i++) {
-            new(&counters[i]) aligned_counter;
+            new(&counters[i]) aligned_non_atomic_counter;
         }
     }
     void add(int thread_id) {

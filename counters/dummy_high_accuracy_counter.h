@@ -7,11 +7,6 @@
 #include <new>
 #include "abstract_counter.h"
 
-using counter = std::atomic<uint32_t>;
-
-struct alignas(128) aligned_counter {
-    counter value;
-};
 
 class dummy_high_accuracy_counter : abstract_counter {
 private:

@@ -12,11 +12,6 @@
 #include "../fast_random.h"
 #include "abstract_counter.h"
 
-using counter = std::atomic<uint32_t>;
-
-struct alignas(128) aligned_counter {
-    counter value;
-};
 
 class two_choice_counter {
 private:
