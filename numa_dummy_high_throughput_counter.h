@@ -17,7 +17,7 @@ public:
     numa_dummy_high_throughput_counter(int num_nodes, std::size_t num_counters_on_each_node) : num_nodes(num_nodes) {
         for (int i = 0; i < num_nodes; i++) {
             auto data = numa_alloc_onnode(sizeof(Counter), i);
-            node_counters.push_back(new(data) two_choice_counter(num_counters_on_each_node, i));
+            node_counters.push_back(new(data) Counter(num_counters_on_each_node, i));
         }
     }
     void add(int node_id, int thread_id) {
