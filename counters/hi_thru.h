@@ -1,5 +1,5 @@
-#ifndef NUMA_MQ_DUMMY_HIGH_THROUGHPUT_COUNTER_H
-#define NUMA_MQ_DUMMY_HIGH_THROUGHPUT_COUNTER_H
+#ifndef NUMA_MQ_HI_THRU_H
+#define NUMA_MQ_HI_THRU_H
 
 #include <cstdint>
 #include <atomic>
@@ -10,7 +10,7 @@
 #include "abstract_counter.h"
 
 
-class dummy_high_throughput_counter : abstract_counter {
+class hi_thru : abstract_counter {
 private:
     const int threads_on_node = 18;
     using non_atomic_counter = uint32_t;
@@ -25,7 +25,7 @@ private:
         return counters[thread_id % threads_on_node].value;
     }
 public:
-    dummy_high_throughput_counter(std::size_t num_counters, int node_id) : num_counters(num_counters) {
+    hi_thru(std::size_t num_counters, int node_id) : num_counters(num_counters) {
         counters = (aligned_non_atomic_counter *) numa_alloc_onnode(sizeof(aligned_non_atomic_counter) * threads_on_node, node_id);
         for (std::size_t i = 0; i < threads_on_node; i++) {
             new(&counters[i]) aligned_non_atomic_counter;
@@ -39,4 +39,4 @@ public:
     }
 };
 
-#endif //NUMA_MQ_DUMMY_HIGH_THROUGHPUT_COUNTER_H
+#endif //NUMA_MQ_HI_THRU_H

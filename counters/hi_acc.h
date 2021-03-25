@@ -1,5 +1,5 @@
-#ifndef NUMA_MQ_DUMMY_HIGH_ACCURACY_COUNTER_H
-#define NUMA_MQ_DUMMY_HIGH_ACCURACY_COUNTER_H
+#ifndef NUMA_MQ_HI_ACC_H
+#define NUMA_MQ_HI_ACC_H
 
 #include <cstdint>
 #include <atomic>
@@ -8,14 +8,14 @@
 #include "abstract_counter.h"
 
 
-class dummy_high_accuracy_counter : abstract_counter {
+class hi_acc : abstract_counter {
 private:
     aligned_counter * my_counter;
     counter & get_counter() {
         return my_counter->value;
     }
 public:
-    dummy_high_accuracy_counter(std::size_t num_counters, int node_id) {
+    hi_acc(std::size_t num_counters, int node_id) {
         my_counter = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter), node_id);
         new(my_counter) aligned_counter;
     }
@@ -28,4 +28,4 @@ public:
 };
 
 
-#endif //NUMA_MQ_DUMMY_HIGH_ACCURACY_COUNTER_H
+#endif //NUMA_MQ_HI_ACC_H

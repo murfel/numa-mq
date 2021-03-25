@@ -1,11 +1,11 @@
 #include <numa.h>
-#include "../counters/two_choice_counter.h"
+#include "../counters/two_choice.h"
 
-#ifndef NUMA_MQ_NUMA_DUMMY_HIGH_THROUGHPUT_COUNTER_H
-#define NUMA_MQ_NUMA_DUMMY_HIGH_THROUGHPUT_COUNTER_H
+#ifndef NUMA_MQ_NUMA_HI_THRU_COUNTER_H
+#define NUMA_MQ_NUMA_HI_THRU_COUNTER_H
 
 template <class Counter>
-class numa_dummy_high_throughput_counter {
+class numa_hi_thru {
 private:
     const int num_nodes;
     std::vector<Counter *> node_counters;
@@ -14,7 +14,7 @@ private:
         return *node_counters[node_id];
     }
 public:
-    numa_dummy_high_throughput_counter(int num_nodes, std::size_t num_counters_on_each_node) : num_nodes(num_nodes) {
+    numa_hi_thru(int num_nodes, std::size_t num_counters_on_each_node) : num_nodes(num_nodes) {
         for (int i = 0; i < num_nodes; i++) {
             auto data = numa_alloc_onnode(sizeof(Counter), i);
             node_counters.push_back(new(data) Counter(num_counters_on_each_node, i));
@@ -28,4 +28,4 @@ public:
     }
 };
 
-#endif //NUMA_MQ_NUMA_DUMMY_HIGH_THROUGHPUT_COUNTER_H
+#endif //NUMA_MQ_NUMA_HI_THRU_COUNTER_H
