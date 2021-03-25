@@ -12,11 +12,12 @@
 /* Benchmarking utils */
 
 struct multicounter_benchmark_results {
+    std::size_t num_threads;
     std::vector<uint64_t> time_ms;
     std::vector<uint64_t> num_ops;
     std::vector<uint64_t> cnt_expected;
     std::vector<uint64_t> cnt_actual;
-    explicit multicounter_benchmark_results(std::size_t num_threads) {
+    explicit multicounter_benchmark_results(std::size_t num_threads): num_threads(num_threads) {
         time_ms.resize(num_threads);
         num_ops.resize(num_threads);
         cnt_expected.resize(num_threads);
@@ -164,22 +165,24 @@ multicounter_benchmark_results bench_numa_multicounter_time_for_ops(
     return bench_results;
 }
 
-template<class NUMACounter>
-void bench_and_print_numa_multicounter_time_for_ops(
-        std::size_t num_threads, std::size_t num_counters_on_each_node, uint64_t num_ops = 1'000'000) {
-    auto res = bench_numa_multicounter_time_for_ops<NUMACounter>(num_threads, num_counters_on_each_node, num_ops);
-    uint64_t time_ms = *std::max_element(res.time_ms.begin(), res.time_ms.end());
-
-    std::vector<uint64_t> abs_diffs;
-    abs_diffs.reserve(num_threads);
-    for (std::size_t i = 0; i < res.cnt_expected.size(); i++) {
-        abs_diffs.push_back(abs_diff(res.cnt_expected[i], res.cnt_actual[i]));
+void print_results(const std::vector<multicounter_benchmark_results> & results) {
+    std::cout << "mops" << std::endl;
+    for (const auto & res: results) {
+        uint64_t time_ms = *std::max_element(res.time_ms.begin(), res.time_ms.end());
+        int mops = (int)calc_mops_per_s(
+                std::accumulate(res.num_ops.begin(), res.num_ops.end(), 0ULL), time_ms);
+        std::cout << mops << std::endl;
     }
-    uint64_t avg_abs_diff = avg(abs_diffs);
-    std::cout << num_threads << " threads (" << calc_num_nodes(num_threads) << " nodes), "
-              << num_counters_on_each_node << " counters per node: ";
-    std::cout << time_ms << " ms (" << (int)calc_mops_per_s(num_ops * num_threads, time_ms) << " mops/s), ";
-    std::cout << avg_abs_diff << " avg diff"<< std::endl;
+    std::cout << "avg abs diff" << std::endl;
+    for (const auto & res: results) {
+        std::vector<uint64_t> abs_diffs;
+        abs_diffs.reserve(res.num_threads);
+        for (std::size_t i = 0; i < res.cnt_expected.size(); i++) {
+            abs_diffs.push_back(abs_diff(res.cnt_expected[i], res.cnt_actual[i]));
+        }
+        uint64_t avg_abs_diff = avg(abs_diffs);
+        std::cout << avg_abs_diff << std::endl;
+    }
 }
 
 using dummy_2choice_counter_t = numa_dummy_high_throughput_counter<two_choice_counter>;
@@ -188,32 +191,33 @@ using dummy_hi_acc_counter_t = numa_dummy_high_throughput_counter<dummy_high_acc
 
 int main() {
     const int T = 18;  // num threads on one node
+    std::vector<multicounter_benchmark_results> results;
 
-    std::cout << "simple two_choice_counter 18 threads, 1-18 counters, mops" << std::endl;
-    for (int num_counter = 1; num_counter <= 18; num_counter++) {
-        uint64_t mops = bench_simple_multicounter_ops_for_time<two_choice_counter>(T, num_counter);
-        std::cout << mops << " " << std::flush;
-    } std::cout << std::endl;
-
-    std::cout << "simple two_choice_counter 18 threads, mult * 18 counters, mult=1..4, mops" << std::endl;
-    for (int mult = 1; mult <= 4; mult++) {
-        uint64_t mops = bench_simple_multicounter_ops_for_time<two_choice_counter>(T, T * mult);
-        std::cout << mops << " " << std::flush;
-    } std::cout << std::endl;
-
-    std::cout << "numa two_choice_counter mult * 18 threads, mult=1..4, 1 counter on each node, mops" << std::endl;
+    std::cout << "numa hi thru, two_choice_counter, 1'000'000 increments by each thread" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        uint64_t mops = bench_numa_multicounter_ops_for_time<dummy_2choice_counter_t>(num_threads, 1);
-        std::cout << mops << " " << std::flush;
-    } std::cout << std::endl;
-
-    std::cout << "numa two_choice_counter, 1'000'000 increments by each thread" << std::endl;
-    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        bench_and_print_numa_multicounter_time_for_ops<dummy_2choice_counter_t>(num_threads, 1);
         for (int mult = 1; mult <= 4; mult++) {
-            bench_and_print_numa_multicounter_time_for_ops<dummy_2choice_counter_t>(num_threads, T * mult);
+            auto res = bench_numa_multicounter_time_for_ops<dummy_2choice_counter_t>(num_threads, num_threads * mult);
+            results.push_back(res);
         }
     }
+    print_results(results);
+    results.clear();
+
+    std::cout << "numa hi thru, hi acc, 1'000'000 increments by each thread" << std::endl;
+    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+        auto res = bench_numa_multicounter_time_for_ops<dummy_hi_acc_counter_t>(num_threads, 1);
+        results.push_back(res);
+    }
+    print_results(results);
+    results.clear();
+
+    std::cout << "numa hi thru, hi thru, 1'000'000 increments by each thread" << std::endl;
+    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+        auto res = bench_numa_multicounter_time_for_ops<dummy_hi_thru_counter_t>(num_threads, num_threads);
+        results.push_back(res);
+    }
+    print_results(results);
+    results.clear();
 
     return 0;
 }
