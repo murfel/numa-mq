@@ -9,6 +9,7 @@
 #include "numa_counters/numa_hi_thru_add_hi_acc_get.h"
 #include "counters/hi_acc.h"
 #include "counters/hi_thru.h"
+#include "counters/two_choice_avg.h"
 
 /* Benchmarking utils */
 
@@ -189,6 +190,7 @@ void print_results(const std::vector<multicounter_benchmark_results> & results) 
 using hi_thru_two_choice = numa_hi_thru<two_choice>;
 using hi_thru_hi_thru = numa_hi_thru<hi_thru>;
 using hi_thru_hi_acc = numa_hi_thru<hi_acc>;
+using hi_thru_two_choice_avg = numa_hi_thru<two_choice_avg>;
 
 using hi_thru_add_hi_acc_get_hi_acc_counter_t = numa_hi_thru_add_hi_acc_get<hi_acc>;
 
@@ -197,7 +199,9 @@ int main() {
     const int T = 18;  // num threads on one node
     std::vector<multicounter_benchmark_results> results;
 
-    std::cout << "numa hi thru, two_choice, 1'000'000 increments by each thread" << std::endl;
+    std::cout << "1'000'000 increments by each thread" << std::endl;
+
+    std::cout << "numa hi thru, two_choice" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         for (int mult = 1; mult <= 4; mult++) {
             auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice>(num_threads, num_threads * mult);
@@ -207,7 +211,17 @@ int main() {
     print_results(results);
     results.clear();
 
-    std::cout << "numa hi thru, hi acc, 1'000'000 increments by each thread" << std::endl;
+    std::cout << "numa hi thru, two_choice_avg" << std::endl;
+    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+        for (int mult = 1; mult <= 4; mult++) {
+            auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice_avg>(num_threads, num_threads * mult);
+            results.push_back(res);
+        }
+    }
+    print_results(results);
+    results.clear();
+
+    std::cout << "numa hi thru, hi acc" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_acc>(num_threads, 1);
         results.push_back(res);
@@ -215,7 +229,7 @@ int main() {
     print_results(results);
     results.clear();
 
-    std::cout << "numa hi thru, hi thru, 1'000'000 increments by each thread" << std::endl;
+    std::cout << "numa hi thru, hi thru" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_thru>(num_threads, num_threads);
         results.push_back(res);
@@ -223,7 +237,7 @@ int main() {
     print_results(results);
     results.clear();
 
-    std::cout << "numa hi thru, hi acc, 1'000'000 increments by each thread" << std::endl;
+    std::cout << "numa hi thru add hi acc get, hi acc" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         auto res = bench_numa_multicounter_time_for_ops<hi_thru_add_hi_acc_get_hi_acc_counter_t>(num_threads, 1);
         results.push_back(res);
