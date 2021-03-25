@@ -6,6 +6,7 @@
 
 #include "counters/two_choice_counter.h"
 #include "numa_counters/numa_dummy_high_throughput_counter.h"
+#include "numa_counters/numa_dummy_hi_thru_add_hi_acc_get_counter.h"
 #include "counters/dummy_high_accuracy_counter.h"
 #include "counters/dummy_high_throughput_counter.h"
 
@@ -189,6 +190,9 @@ using dummy_2choice_counter_t = numa_dummy_high_throughput_counter<two_choice_co
 using dummy_hi_thru_counter_t = numa_dummy_high_throughput_counter<dummy_high_throughput_counter>;
 using dummy_hi_acc_counter_t = numa_dummy_high_throughput_counter<dummy_high_accuracy_counter>;
 
+using hi_thru_add_hi_acc_get_hi_acc_counter_t = numa_dummy_hi_thru_add_hi_acc_get_counter<dummy_high_accuracy_counter>;
+
+
 int main() {
     const int T = 18;  // num threads on one node
     std::vector<multicounter_benchmark_results> results;
@@ -214,6 +218,14 @@ int main() {
     std::cout << "numa hi thru, hi thru, 1'000'000 increments by each thread" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         auto res = bench_numa_multicounter_time_for_ops<dummy_hi_thru_counter_t>(num_threads, num_threads);
+        results.push_back(res);
+    }
+    print_results(results);
+    results.clear();
+
+    std::cout << "numa hi thru, hi acc, 1'000'000 increments by each thread" << std::endl;
+    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+        auto res = bench_numa_multicounter_time_for_ops<hi_thru_add_hi_acc_get_hi_acc_counter_t>(num_threads, 1);
         results.push_back(res);
     }
     print_results(results);
