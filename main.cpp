@@ -93,12 +93,13 @@ uint64_t bench_simple_multicounter_ops_for_time(std::size_t num_threads, std::si
     std::vector<std::thread> threads;
     std::vector<uint64_t> num_ops_counters(num_threads);
     Counter m(num_counters, 0);
-    boost::barrier barrier(num_threads);
+    boost::barrier barrier(num_threads + 1);
     for (std::size_t thread_id = 0; thread_id < num_threads; thread_id++) {
         threads.emplace_back(simple_multicounter_thread_routine_ops_for_time<Counter>, thread_id, std::ref(barrier),
                              std::ref(m), std::ref(num_ops_counters[thread_id]));
         pin_thread(thread_id, threads.back());
     }
+    barrier.wait();
     for (std::thread & thread : threads) {
         thread.join();
     }
@@ -121,12 +122,13 @@ uint64_t bench_numa_multicounter_ops_for_time(std::size_t num_threads, std::size
     std::vector<uint64_t> num_ops_counters(num_threads);
     const int num_nodes = calc_num_nodes(num_threads);
     NUMACounter m(num_nodes, num_counters_on_each_node);
-    boost::barrier barrier(num_threads);
+    boost::barrier barrier(num_threads + 1);
     for (std::size_t thread_id = 0; thread_id < num_threads; thread_id++) {
         threads.emplace_back(numa_multicounter_thread_routine_ops_for_time<NUMACounter>, thread_id / 18, thread_id,
                              std::ref(barrier), std::ref(m), std::ref(num_ops_counters[thread_id]));
         pin_thread(thread_id, threads.back());
     }
+    barrier.wait();
     for (std::thread & thread : threads) {
         thread.join();
     }
@@ -151,7 +153,7 @@ multicounter_benchmark_results bench_numa_multicounter_time_for_ops(
     std::vector<std::thread> threads;
     const int num_nodes = calc_num_nodes(num_threads);
     NUMACounter m(num_nodes, num_counters_on_each_node);
-    boost::barrier barrier(num_threads);
+    boost::barrier barrier(num_threads + 1);
     multicounter_benchmark_results bench_results(num_threads);
     std::fill(bench_results.num_ops.begin(), bench_results.num_ops.end(), num_ops);
     std::fill(bench_results.cnt_expected.begin(), bench_results.cnt_expected.end(), num_ops * num_threads);
@@ -161,6 +163,8 @@ multicounter_benchmark_results bench_numa_multicounter_time_for_ops(
                 std::ref(bench_results.time_ms[thread_id]), std::ref(bench_results.cnt_actual[thread_id]));
         pin_thread(thread_id, threads.back());
     }
+    barrier.wait();
+    barrier.wait();
     for (std::thread & thread : threads) {
         thread.join();
     }
