@@ -22,11 +22,12 @@ void pin_thread(int cpu, std::thread & thread) {
 int main() {
     std::size_t num_threads = 4 * 18;
     std::vector<std::thread> threads;
-    boost::barrier barrier(num_threads);
+    boost::barrier barrier(num_threads + 1);
     for (std::size_t i = 0; i < num_threads; i++) {
         threads.emplace_back(thread_routine, std::ref(barrier));
         pin_thread(i, threads.back());
     }
+    barrier.wait();
     for (auto & thread: threads) {
         thread.join();
     }
