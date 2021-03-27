@@ -11,9 +11,13 @@ struct alignas(128) aligned_counter {
 class abstract_counter {
 public:
     abstract_counter() = default;
-    abstract_counter(std::size_t num_counters, int node_id) {}
-    void add(int thread_id) {}
+    abstract_counter(std::size_t num_counters, int node_id) {
+        (void) num_counters;
+        (void) node_id;
+    }
+    void add(int thread_id) { (void) thread_id; }
     uint32_t get(int thread_id) {
+        (void) thread_id;
         return 0;
     }
 };

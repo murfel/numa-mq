@@ -32,9 +32,11 @@ public:
         }
     }
     void add(int thread_id) {
+        (void) thread_id;
         get_counter(thread_id)++;
     }
     uint32_t get(int thread_id) {
+        (void) thread_id;
         return threads_on_node * get_counter(thread_id);
     }
 };

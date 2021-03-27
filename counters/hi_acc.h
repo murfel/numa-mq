@@ -16,13 +16,16 @@ private:
     }
 public:
     hi_acc(std::size_t num_counters, int node_id) {
+        (void ) num_counters;
         my_counter = (aligned_counter *) numa_alloc_onnode(sizeof(aligned_counter), node_id);
         new(my_counter) aligned_counter;
     }
     void add(int thread_id) {
+        (void) thread_id;
         get_counter()++;
     }
     uint32_t get(int thread_id) {
+        (void) thread_id;
         return get_counter();
     }
 };

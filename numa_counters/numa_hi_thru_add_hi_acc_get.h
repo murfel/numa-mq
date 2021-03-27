@@ -25,6 +25,7 @@ public:
         get_node_counter(node_id).add(thread_id);
     }
     uint64_t get(int node_id, int thread_id) {
+        (void) node_id;
         uint64_t sum = 0;
         for (int i = 0; i < num_nodes; i++) {
             sum += get_node_counter(i).get(thread_id);
