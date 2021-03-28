@@ -6,7 +6,7 @@
 #ifndef NUMA_MQ_TWO_CHOICE_AVG_H
 #define NUMA_MQ_TWO_CHOICE_AVG_H
 
-class two_choice_avg {
+class two_choice_avg : abstract_counter {
 private:
     aligned_counter * counters;
     const std::size_t num_counters;
