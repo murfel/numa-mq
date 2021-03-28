@@ -10,6 +10,7 @@
 #include "counters/hi_acc.h"
 #include "counters/hi_thru.h"
 #include "counters/two_choice_avg.h"
+#include "counters/two_choice_avg_plus_delta.h"
 
 /* Benchmarking utils */
 
@@ -136,6 +137,40 @@ uint64_t bench_numa_multicounter_ops_for_time(std::size_t num_threads, std::size
     return mops;
 }
 
+template<class Counter>
+void simple_multicounter_thread_routine_time_for_ops(int thread_id, boost::barrier & barrier, Counter & m,
+                                                     uint64_t num_ops, uint64_t & time_ms, uint64_t & cnt_actual) {
+    barrier.wait();
+    time_ms = execute_for_ops([thread_id, &m]() {
+        m.add(thread_id);
+    }, num_ops);
+    barrier.wait();
+    cnt_actual = m.get(thread_id);
+}
+
+template<class Counter>
+multicounter_benchmark_results bench_simple_multicounter_time_for_ops(
+        std::size_t num_threads, std::size_t num_counters_total, int node_id, uint64_t num_ops = 1'000'000) {
+    std::vector<std::thread> threads;
+    Counter m(num_counters_total, node_id);
+    boost::barrier barrier(num_threads + 1);
+    multicounter_benchmark_results bench_results(num_threads);
+    std::fill(bench_results.num_ops.begin(), bench_results.num_ops.end(), num_ops);
+    std::fill(bench_results.cnt_expected.begin(), bench_results.cnt_expected.end(), num_ops * num_threads);
+    for (std::size_t thread_id = 0; thread_id < num_threads; thread_id++) {
+        threads.emplace_back(simple_multicounter_thread_routine_time_for_ops<Counter>, thread_id,
+                             std::ref(barrier), std::ref(m), bench_results.num_ops[thread_id],
+                             std::ref(bench_results.time_ms[thread_id]), std::ref(bench_results.cnt_actual[thread_id]));
+        pin_thread(thread_id, threads.back());
+    }
+    barrier.wait();
+    barrier.wait();
+    for (std::thread & thread : threads) {
+        thread.join();
+    }
+    return bench_results;
+}
+
 template<class NUMACounter>
 void numa_multicounter_thread_routine_time_for_ops(int node_id, int thread_id, boost::barrier & barrier,
                                                    NUMACounter & m, uint64_t num_ops, uint64_t & time_ms, uint64_t & cnt_actual) {
@@ -191,10 +226,12 @@ void print_results(const std::vector<multicounter_benchmark_results> & results) 
     }
 }
 
-using hi_thru_two_choice = numa_hi_thru<two_choice>;
 using hi_thru_hi_thru = numa_hi_thru<hi_thru>;
 using hi_thru_hi_acc = numa_hi_thru<hi_acc>;
+
+using hi_thru_two_choice = numa_hi_thru<two_choice>;
 using hi_thru_two_choice_avg = numa_hi_thru<two_choice_avg>;
+using hi_thru_two_choice_avg_plus_delta = numa_hi_thru<two_choice_avg_plus_delta>;
 
 using hi_thru_add_hi_acc_get_hi_acc_counter_t = numa_hi_thru_add_hi_acc_get<hi_acc>;
 
@@ -205,20 +242,18 @@ int main() {
 
     std::cout << "1'000'000 increments by each thread" << std::endl;
 
-    std::cout << "numa hi thru, two_choice" << std::endl;
-    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        for (int mult = 1; mult <= 4; mult++) {
-            auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice>(num_threads, num_threads * mult);
-            results.push_back(res);
-        }
+    std::cout << "simple counter, hi acc" << std::endl;
+    for (int num_threads = T; num_threads <= 4 * T; num_threads += T) {
+        auto res = bench_simple_multicounter_time_for_ops<hi_acc>(num_threads, -1, 0);
+        results.push_back(res);
     }
     print_results(results);
     results.clear();
 
-    std::cout << "numa hi thru, two_choice_avg" << std::endl;
+    std::cout << "numa hi thru, two_choice*" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         for (int mult = 1; mult <= 4; mult++) {
-            auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice_avg>(num_threads, num_threads * mult);
+            auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice>(num_threads, num_threads * mult);
             results.push_back(res);
         }
     }
