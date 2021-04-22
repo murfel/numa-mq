@@ -7,6 +7,7 @@
 #include "counters/two_choice.h"
 #include "numa_counters/numa_hi_thru.h"
 #include "numa_counters/numa_hi_thru_add_hi_acc_get.h"
+#include "numa_counters/numa_mostly_local.h"
 #include "counters/hi_acc.h"
 #include "counters/hi_thru.h"
 #include "counters/two_choice_avg.h"
@@ -235,54 +236,58 @@ using hi_thru_two_choice_avg_plus_delta = numa_hi_thru<two_choice_avg_plus_delta
 
 using hi_thru_add_hi_acc_get_hi_acc_counter_t = numa_hi_thru_add_hi_acc_get<hi_acc>;
 
+using mostly_local_two_choice_t = numa_mostly_local<two_choice>;
 
 int main() {
     const int T = 18;  // num threads on one node
     std::vector<multicounter_benchmark_results> results;
 
-    std::cout << "1'000'000 increments by each thread" << std::endl;
-
-    std::cout << "simple counter, hi acc" << std::endl;
-    for (int num_threads = T; num_threads <= 4 * T; num_threads += T) {
-        auto res = bench_simple_multicounter_time_for_ops<hi_acc>(num_threads, -1, 0);
-        results.push_back(res);
-    }
-    print_results(results);
-    results.clear();
-
-    std::cout << "numa hi thru, two_choice*" << std::endl;
+//    std::cout << "1'000'000 increments by each thread" << std::endl;
+//
+//    std::cout << "simple counter, hi acc" << std::endl;
+//    for (int num_threads = T; num_threads <= 4 * T; num_threads += T) {
+//        auto res = bench_simple_multicounter_time_for_ops<hi_acc>(num_threads, -1, 0);
+//        results.push_back(res);
+//    }
+//    print_results(results);
+//    results.clear();
+//
+    std::cout << "numa *, two_choice*, 2 local" << std::endl;
     for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
         for (int mult = 1; mult <= 4; mult++) {
-            auto res = bench_numa_multicounter_time_for_ops<hi_thru_two_choice>(num_threads, num_threads * mult);
+            auto res = bench_numa_multicounter_time_for_ops<mostly_local_two_choice_t>(num_threads, num_threads * mult);
             results.push_back(res);
         }
     }
     print_results(results);
     results.clear();
+//
+//    std::cout << "numa hi thru, hi acc" << std::endl;
+//    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+//        auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_acc>(num_threads, 1);
+//        results.push_back(res);
+//    }
+//    print_results(results);
+//    results.clear();
 
-    std::cout << "numa hi thru, hi acc" << std::endl;
-    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_acc>(num_threads, 1);
-        results.push_back(res);
-    }
-    print_results(results);
-    results.clear();
+//    std::cout << "numa hi thru, hi thru" << std::endl;
+//    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+//        auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_thru>(num_threads, num_threads);
+//        results.push_back(res);
+//        for (unsigned long time_m : res.time_ms) {
+//            std::cerr << time_m << " ";
+//        } std::cerr << std::endl;
+//    }
+//    print_results(results);
+//    results.clear();
 
-    std::cout << "numa hi thru, hi thru" << std::endl;
-    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        auto res = bench_numa_multicounter_time_for_ops<hi_thru_hi_thru>(num_threads, num_threads);
-        results.push_back(res);
-    }
-    print_results(results);
-    results.clear();
-
-    std::cout << "numa hi thru add hi acc get, hi acc" << std::endl;
-    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
-        auto res = bench_numa_multicounter_time_for_ops<hi_thru_add_hi_acc_get_hi_acc_counter_t>(num_threads, 1);
-        results.push_back(res);
-    }
-    print_results(results);
-    results.clear();
+//    std::cout << "numa hi thru add hi acc get, hi acc" << std::endl;
+//    for (int num_threads = T; num_threads <= T * 4; num_threads += T) {
+//        auto res = bench_numa_multicounter_time_for_ops<hi_thru_add_hi_acc_get_hi_acc_counter_t>(num_threads, 1);
+//        results.push_back(res);
+//    }
+//    print_results(results);
+//    results.clear();
 
     return 0;
 }
